@@ -421,6 +421,7 @@ public class MainActivity extends Activity
 
 	}
 
+	
 
 	@SuppressWarnings("unused")
 	private void logMe( String logThis )
