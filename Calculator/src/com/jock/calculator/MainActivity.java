@@ -428,8 +428,6 @@ public class MainActivity extends Activity
 		Log.d( APP_TAG, logThis );
 	}
 
-
-	
 	
 	@Override
 	public boolean onCreateOptionsMenu( Menu menu )
