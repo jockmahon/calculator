@@ -1,7 +1,6 @@
 package com.jock.calculator;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -21,6 +20,7 @@ public class MainActivity extends Activity
 	ArrayList<String> inputs = new ArrayList<String>();
 	ArrayList<String> history = new ArrayList<String>();
 
+	
 	private EditText cal_et;
 	private Button up_btn;
 	private Boolean isEquationMode;
@@ -422,6 +422,7 @@ public class MainActivity extends Activity
 	}
 
 
+	@SuppressWarnings("unused")
 	private void logMe( String logThis )
 	{
 		Log.d( APP_TAG, logThis );
