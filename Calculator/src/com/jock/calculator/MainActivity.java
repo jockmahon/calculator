@@ -55,6 +55,7 @@ public class MainActivity extends Activity
 	}
 
 
+	// helper function to remove elements from an ArrayList
 	private ArrayList<String> remove( ArrayList<String> list, int from, int to )
 	{
 		for(int i = to; i > from; i--)
@@ -65,6 +66,7 @@ public class MainActivity extends Activity
 	}
 
 
+	// calculate the contents of any brackets
 	private ArrayList<String> bracketContents( ArrayList<String> inputStrings )
 	{
 
@@ -75,6 +77,8 @@ public class MainActivity extends Activity
 		{
 			int closeBracketPos = inputStrings.size();
 
+			// get the last open bracket and work forward to get its matching
+			// close bracket
 			openBracketPos = inputStrings.lastIndexOf( "(" );
 			if( openBracketPos != -1 )
 			{
@@ -87,25 +91,33 @@ public class MainActivity extends Activity
 					}
 				}
 
+				// extract the bracket contents including the brackets
 				ArrayList<String> bracketContent = new ArrayList<String>( inputStrings.subList( openBracketPos, closeBracketPos ) );
 
+				// remove the bracket content which will be replaced with its
+				// result
 				inputs = remove( inputs, openBracketPos, closeBracketPos );
 
+				// remove the (
 				bracketContent.remove( 0 );
 
+				// if the last element was ) then remove it
 				if( bracketContent.get( bracketContent.size() - 1 ).equals( ")" ) )
 				{
 					bracketContent.remove( bracketContent.size() - 1 );
 				}
 
+				// calculate the bracket equation
 				bracketContent = operatorPrecedence( bracketContent );
 				bracketContent = calculate( bracketContent );
 
+				// put the result back in the main inputs ArrayList
 				inputs.add( openBracketPos, bracketContent.get( 0 ) );
 			}
 			else
 			{
-
+				// if there is no (, above, and no ) the exit the while else add
+				// a ( to complete the set
 				if( inputStrings.lastIndexOf( ")" ) == -1 )
 				{
 					cont = false;
@@ -127,13 +139,14 @@ public class MainActivity extends Activity
 		Boolean cont = true;
 		while (cont)
 		{
+			// if only one value the exit
 			if( equation.size() == 1 )
 			{
 				cont = false;
 			}
 			else
 			{
-
+				// do the math , * and / will already be done
 				if( equation.size() > 2 )
 				{
 					Float value1 = Float.parseFloat( equation.get( 0 ) );
@@ -165,6 +178,7 @@ public class MainActivity extends Activity
 	}
 
 
+	// do all the * and / first
 	private ArrayList<String> operatorPrecedence( ArrayList<String> inputStrings )
 	{
 		Boolean cont = true;
@@ -201,18 +215,20 @@ public class MainActivity extends Activity
 	}
 
 
+	// when the = is pressed
 	public void onEqualsClick( View v )
 	{
 		Boolean cont = true;
 
+		// add the equation to the history
 		history.add( cal_et.getText().toString() );
 		up_btn.setEnabled( ( history.size() > 0 ) );
 
 		checkForOrphanOp();
 
-		inputs = bracketContents( inputs );
+		inputs = bracketContents( inputs ); // calculate the contents of all ()
 
-		inputs = operatorPrecedence( inputs );
+		inputs = operatorPrecedence( inputs ); // calculate all the * and /
 
 		while (cont)
 		{
@@ -257,6 +273,8 @@ public class MainActivity extends Activity
 	}
 
 
+	// if the first or last input is a operator than insert dummy value so the
+	// calculation can work
 	private void checkForOrphanOp()
 	{
 		if( isOperator( inputs.get( 0 ) ) )
@@ -277,6 +295,9 @@ public class MainActivity extends Activity
 	}
 
 
+	// used to remove tailing zero on the number ie float values are 4.0, if
+	// remainder is 0
+	// then return only the 4
 	private String checkRemainder( String value )
 	{
 
@@ -316,17 +337,21 @@ public class MainActivity extends Activity
 	}
 
 
+	// on any button click
 	public void onButtonClick( View v )
 	{
 		Button but = (Button) findViewById( v.getId() );
 		String input = but.getText().toString();
 		String previousInput = inputs.get( inputs.size() - 1 );
 
+		// if a number
 		if( ( input.equals( "." ) ) || ( input.equals( "0" ) ) || ( input.equals( "1" ) ) || ( input.equals( "2" ) ) || ( input.equals( "3" ) )
 				|| ( input.equals( "4" ) ) || ( input.equals( "5" ) ) || ( input.equals( "6" ) ) || ( input.equals( "7" ) ) || ( input.equals( "8" ) )
 				|| ( input.equals( "9" ) ) )
 		{
-
+			// if in equation mode the replace the ? place holder with the value
+			// entered, if ? then replace it else append on to the value at the
+			// index where the ? was
 			if( isEquationMode )
 			{
 				if( replaceIndex == -1 )
@@ -352,7 +377,7 @@ public class MainActivity extends Activity
 			}
 
 		}
-		else if( isBracket( input ) )
+		else if( isBracket( input ) ) // if a bracket
 		{
 			if( previousInput.equals( "" ) )
 			{
@@ -363,9 +388,10 @@ public class MainActivity extends Activity
 				inputs.add( String.valueOf( but.getText() ) );
 			}
 		}
-		else
+		else // if a operator 
 		{
-			if( isOperator( previousInput ) || inputs.get( inputs.size() - 1 ).equals( "" ) )
+			//if the previous input was an operator then replace it else add
+			if( isOperator( previousInput ) || previousInput.equals( "" ) )
 			{
 				// inputs.set( inputs.size() - 1, checkRemainder(
 				// String.valueOf( but.getText() ) ) );
@@ -381,6 +407,7 @@ public class MainActivity extends Activity
 	}
 
 
+	// set the text of the equation
 	private void setCalText()
 	{
 		cal_et.setText( "" );
@@ -482,6 +509,8 @@ public class MainActivity extends Activity
 	}
 
 
+	// reconstruct the inputs ArrayList from the cal_et text, used by the up and
+	// saved equations
 	private void populateInputsArray()
 	{
 		inputs.clear();
@@ -505,6 +534,7 @@ public class MainActivity extends Activity
 	}
 
 
+	// get the equation that was last calculated
 	public void onUpClick( View v )
 	{
 		cal_et.setText( history.get( history.size() - 1 ) );
