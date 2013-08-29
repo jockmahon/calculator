@@ -388,9 +388,10 @@ public class MainActivity extends Activity
 				inputs.add( String.valueOf( but.getText() ) );
 			}
 		}
-		else // if a operator 
+		else
+		// if a operator
 		{
-			//if the previous input was an operator then replace it else add
+			// if the previous input was an operator then replace it else add
 			if( isOperator( previousInput ) || previousInput.equals( "" ) )
 			{
 				// inputs.set( inputs.size() - 1, checkRemainder(
