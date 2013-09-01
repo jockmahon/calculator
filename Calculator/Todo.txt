@@ -1,0 +1,13 @@
+Outstanding
+1) Fix error when in equation mode and you press equals without replacing the ? placeholder with a value
+2) Do better graphics for the buttons
+3) Save user equations
+4) Display user equations
+5) Delete user equations
+6) MAYBE - Edit user equationss
+7) MAYBE - Add a remove last entry button
+
+
+Done
+Do numbers reverse layout
+Allow user to set preference for layout of numbers

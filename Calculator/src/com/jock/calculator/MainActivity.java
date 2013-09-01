@@ -1,16 +1,23 @@
 package com.jock.calculator;
 
 import java.util.ArrayList;
+
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
-public class MainActivity extends Activity
+public class MainActivity extends Activity implements OnSharedPreferenceChangeListener
 {
 	private static final String APP_TAG = "MY_CAL";
 	private static final String STATE_INPUTS = "inputs";
@@ -19,10 +26,20 @@ public class MainActivity extends Activity
 	ArrayList<String> inputs = new ArrayList<String>();
 	ArrayList<String> history = new ArrayList<String>();
 
-	private EditText cal_et;
-	private Button up_btn;
+	private EditText et_cal;
+	private Button btn_equals;
+	private Button btn_up;
+	private Button btn_plus;
+	private Button btn_mins;
+	private Button btn_mult;
+	private Button btn_divide;
+	private Button btn_leftBraket;
+	private Button btn_rightBraket;
+	private Button btn_question;
 	private Boolean isEquationMode;
 	private int replaceIndex;
+
+	private SharedPreferences prefs;
 
 
 	@Override
@@ -30,28 +47,81 @@ public class MainActivity extends Activity
 	{
 		super.onCreate( savedInstanceState );
 
-		setContentView( R.layout.newcal );
+		prefs = PreferenceManager.getDefaultSharedPreferences( this );
+		prefs.registerOnSharedPreferenceChangeListener( this );
 
-		up_btn = (Button) findViewById( R.id.up_btn );
-		cal_et = (EditText) findViewById( R.id.editText );
+		Boolean isReverse = prefs.getBoolean( PreferencesActivity.KEY_PREF_REVERSE_NUMBERS, false );
+
+		setLayout( isReverse );
 
 		// if there is a saved state restore it
 		if( savedInstanceState != null )
 		{
 			inputs = savedInstanceState.getStringArrayList( STATE_INPUTS );
 			history = savedInstanceState.getStringArrayList( STATE_HISTORY );
-
-			setCalText();
-			up_btn.setEnabled( ( history.size() > 0 ) );
 		}
 		else
 		{
 			inputs.add( "" );
-			up_btn.setEnabled( false );
+		}
+		btn_up.setEnabled( ( history.size() > 0 ) );
+
+		setIsEquationMode( false );
+		replaceIndex = -1;
+	}
+
+
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+	}
+
+
+	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		prefs.unregisterOnSharedPreferenceChangeListener( this );
+	}
+
+
+	@Override
+	protected void onSaveInstanceState( Bundle outState )
+	{
+		outState.putStringArrayList( STATE_INPUTS, inputs );
+		outState.putStringArrayList( STATE_HISTORY, history );
+
+		super.onSaveInstanceState( outState );
+	}
+
+
+	public void onSharedPreferenceChanged( SharedPreferences prefs, String key )
+	{
+		if( key.equals( PreferencesActivity.KEY_PREF_REVERSE_NUMBERS ) )
+		{
+			setLayout( prefs.getBoolean( PreferencesActivity.KEY_PREF_REVERSE_NUMBERS, false ) );
+		}
+	}
+
+
+	private void setLayout( Boolean isReverse )
+	{
+		if( isReverse )
+		{
+			setContentView( R.layout.layout_main_reverse );
+		}
+		else
+		{
+			setContentView( R.layout.layout_main );
 		}
 
-		isEquationMode = false;
-		replaceIndex = -1;
+		btn_up = (Button) findViewById( R.id.up_btn );
+		btn_equals = (Button) findViewById( R.id.equals_btn );
+		et_cal = (EditText) findViewById( R.id.editText );
+
+		setCalText();
+		btn_up.setEnabled( ( history.size() > 0 ) );
 	}
 
 
@@ -69,7 +139,6 @@ public class MainActivity extends Activity
 	// calculate the contents of any brackets
 	private ArrayList<String> bracketContents( ArrayList<String> inputStrings )
 	{
-
 		boolean cont = true;
 		int openBracketPos = -1;
 
@@ -94,8 +163,7 @@ public class MainActivity extends Activity
 				// extract the bracket contents including the brackets
 				ArrayList<String> bracketContent = new ArrayList<String>( inputStrings.subList( openBracketPos, closeBracketPos ) );
 
-				// remove the bracket content which will be replaced with its
-				// result
+				// remove the bracket content which will be replaced with its result
 				inputs = remove( inputs, openBracketPos, closeBracketPos );
 
 				// remove the (
@@ -116,8 +184,7 @@ public class MainActivity extends Activity
 			}
 			else
 			{
-				// if there is no (, above, and no ) the exit the while else add
-				// a ( to complete the set
+				// if there is no (, above, and no ) the exit the while else add a ( to complete the set
 				if( inputStrings.lastIndexOf( ")" ) == -1 )
 				{
 					cont = false;
@@ -126,7 +193,6 @@ public class MainActivity extends Activity
 				{
 					inputs.add( 0, "(" );
 				}
-
 			}
 		}
 
@@ -218,58 +284,85 @@ public class MainActivity extends Activity
 	// when the = is pressed
 	public void onEqualsClick( View v )
 	{
-		Boolean cont = true;
-
-		// add the equation to the history
-		history.add( cal_et.getText().toString() );
-		up_btn.setEnabled( ( history.size() > 0 ) );
-
-		checkForOrphanOp();
-
-		inputs = bracketContents( inputs ); // calculate the contents of all ()
-
-		inputs = operatorPrecedence( inputs ); // calculate all the * and /
-
-		while (cont)
+		String equationText = et_cal.getText().toString();
+		
+		if( btn_equals.getText().equals( "Save" ) )
 		{
-			if( inputs.size() == 1 )
+			SharedPreferences sp = this.getPreferences( Context.MODE_PRIVATE );
+			SharedPreferences.Editor editor = sp.edit();
+
+			editor.putString( "MOOSE_KEY", equationText );
+			editor.commit();
+
+			Toast toast = Toast.makeText( this, getString( R.string.toast_equation_saved ), Toast.LENGTH_SHORT );
+			toast.show();
+
+			toggleEquationModeLayout( false );
+
+			reset();
+		}
+		else
+		{
+			
+			if( equationText.contains( "?" ) )
 			{
-				cont = false;
+				Toast toast = Toast.makeText( this, getString( R.string.toast_error_msg), Toast.LENGTH_SHORT );
+				toast.show();
+				return;
 			}
-			else
+
+			if( !equationText.equals( "" ) )
 			{
+				Boolean cont = true;
 
-				if( inputs.size() > 2 )
+				// add the equation to the history
+				history.add( et_cal.getText().toString() );
+				btn_up.setEnabled( ( history.size() > 0 ) );
+
+				checkForOrphanOp();
+
+				inputs = bracketContents( inputs ); // calculate the contents of all ()
+
+				inputs = operatorPrecedence( inputs ); // calculate all the * and /
+
+				while (cont)
 				{
-					Float value1 = Float.parseFloat( inputs.get( 0 ) );
-					Float value2 = Float.parseFloat( inputs.get( 2 ) );
-
-					Float calculation = 0.0f;
-
-					if( inputs.get( 1 ).equals( "+" ) )
+					if( inputs.size() == 1 )
 					{
-						calculation = value1 + value2;
+						cont = false;
 					}
-					else if( inputs.get( 1 ).equals( "-" ) )
+					else
 					{
-						calculation = value1 - value2;
+
+						if( inputs.size() > 2 )
+						{
+							Float value1 = Float.parseFloat( inputs.get( 0 ) );
+							Float value2 = Float.parseFloat( inputs.get( 2 ) );
+
+							Float calculation = 0.0f;
+
+							if( inputs.get( 1 ).equals( "+" ) )
+							{
+								calculation = value1 + value2;
+							}
+							else if( inputs.get( 1 ).equals( "-" ) )
+							{
+								calculation = value1 - value2;
+							}
+
+							inputs.remove( 0 );
+							inputs.remove( 0 );
+							inputs.set( 0, String.valueOf( calculation ) );
+						}
 					}
-					/*
-					 * else if( inputs.get( 1 ).equals( "*" ) ) { calculation =
-					 * value1 * value2; } else if( inputs.get( 1 ).equals( "/" )
-					 * ) { calculation = value1 / value2; }
-					 */
-					inputs.remove( 0 );
-					inputs.remove( 0 );
-					inputs.set( 0, String.valueOf( calculation ) );
 				}
+
+				et_cal.setText( checkRemainder( inputs.get( 0 ) ) );
+
+				replaceIndex = -1;
+				setIsEquationMode( false );
 			}
 		}
-
-		cal_et.setText( checkRemainder( inputs.get( 0 ) ) );
-
-		replaceIndex = -1;
-		isEquationMode = false;
 	}
 
 
@@ -295,12 +388,9 @@ public class MainActivity extends Activity
 	}
 
 
-	// used to remove tailing zero on the number ie float values are 4.0, if
-	// remainder is 0
-	// then return only the 4
+	// used to remove tailing zero on the number ie float values are 4.0, if remainder is 0 then return only the 4
 	private String checkRemainder( String value )
 	{
-
 		if( value.equals( "" ) )
 		{
 			return "";
@@ -337,12 +427,49 @@ public class MainActivity extends Activity
 	}
 
 
+	// used to remove the last entry, if a operator or bracket just remove it , if a number then need to only remove last digit
+	private void onBackClick()
+	{
+		int lastArrayPos = inputs.size() - 1;
+
+		if( lastArrayPos >= 0 )
+		{
+			String previousInput = inputs.get( lastArrayPos );
+
+			if( isOperator( previousInput ) || isBracket( previousInput ) )
+			{
+				inputs.remove( lastArrayPos );
+			}
+			else
+			{
+				if( previousInput.equals( "" ) )
+				{
+					inputs.remove( lastArrayPos );
+				}
+				else
+				{
+					previousInput = previousInput.substring( 0, previousInput.length() - 1 );
+					inputs.set( lastArrayPos, previousInput );
+				}
+			}
+		}
+
+		if( inputs.size() == 0 )
+		{
+			inputs.add( "" );
+		}
+
+		setCalText();
+	}
+
+
 	// on any button click
 	public void onButtonClick( View v )
 	{
 		Button but = (Button) findViewById( v.getId() );
 		String input = but.getText().toString();
-		String previousInput = inputs.get( inputs.size() - 1 );
+		int lastArrayPos = inputs.size() - 1;
+		String previousInput = inputs.get( lastArrayPos );
 
 		// if a number
 		if( ( input.equals( "." ) ) || ( input.equals( "0" ) ) || ( input.equals( "1" ) ) || ( input.equals( "2" ) ) || ( input.equals( "3" ) )
@@ -372,7 +499,7 @@ public class MainActivity extends Activity
 				}
 				else
 				{
-					inputs.set( inputs.size() - 1, checkRemainder( previousInput ) + String.valueOf( but.getText() ) );
+					inputs.set( lastArrayPos, checkRemainder( previousInput ) + String.valueOf( but.getText() ) );
 				}
 			}
 
@@ -381,7 +508,7 @@ public class MainActivity extends Activity
 		{
 			if( previousInput.equals( "" ) )
 			{
-				inputs.set( inputs.size() - 1, String.valueOf( but.getText() ) );
+				inputs.set( lastArrayPos, String.valueOf( but.getText() ) );
 			}
 			else
 			{
@@ -396,7 +523,7 @@ public class MainActivity extends Activity
 			{
 				// inputs.set( inputs.size() - 1, checkRemainder(
 				// String.valueOf( but.getText() ) ) );
-				inputs.set( inputs.size() - 1, String.valueOf( but.getText() ) );
+				inputs.set( lastArrayPos, String.valueOf( but.getText() ) );
 			}
 			else
 			{
@@ -411,10 +538,10 @@ public class MainActivity extends Activity
 	// set the text of the equation
 	private void setCalText()
 	{
-		cal_et.setText( "" );
+		et_cal.setText( "" );
 		for(int i = 0; i < inputs.size(); i++)
 		{
-			cal_et.append( checkRemainder( inputs.get( i ) ) + " " );
+			et_cal.append( checkRemainder( inputs.get( i ) ) + " " );
 		}
 	}
 
@@ -433,23 +560,23 @@ public class MainActivity extends Activity
 
 	public void onClearClick( View v )
 	{
-		reset();
+		//onBackClick();
+		 reset();
 	}
 
 
 	private void reset()
 	{
-		cal_et.setText( "" );
+		et_cal.setText( "" );
 		inputs.clear();
 		inputs.add( "" );
 
-		up_btn.setEnabled( ( history.size() > 0 ) );
+		btn_up.setEnabled( ( history.size() > 0 ) );
 
 	}
 
 
-	@SuppressWarnings("unused")
-	private void logMe( String logThis )
+	private void logD( String logThis )
 	{
 		Log.d( APP_TAG, logThis );
 	}
@@ -477,24 +604,49 @@ public class MainActivity extends Activity
 
 		switch (item.getItemId())
 		{
-		case R.id.action_clear_history:
-			clearHistory();
-			return true;
 
-		case R.id.xxx:
-			setEquation( "20 + 5 + ( ? * 3 )" );
-			return true;
+			case R.id.menu_item_new_equation:
+				reset();
+				toggleEquationModeLayout( true );
+				return true;
 
-		default:
-			return super.onMenuItemSelected( featureId, item );
+			case R.id.menu_item_clear_history:
+				clearHistory();
+				return true;
+
+			case R.id.menu_item_xxx:
+				loadSavedEquation();
+				return true;
+
+			case R.id.menu_item_settings:
+				openSettings();
+				return true;
+
+			default:
+				return super.onMenuItemSelected( featureId, item );
 		}
 
 	}
 
 
+	private void openSettings()
+	{
+		Intent i = new Intent( this, PreferencesActivity.class );
+		startActivity( i );
+	}
+
+
+	private void loadSavedEquation()
+	{
+		SharedPreferences sp = this.getPreferences( Context.MODE_PRIVATE );
+
+		setEquation( sp.getString( "MOOSE_KEY", "" ) );
+	}
+
+
 	private void setEquation( String equation )
 	{
-		cal_et.setText( equation );
+		et_cal.setText( equation );
 
 		setIsEquationMode( true );
 		populateInputsArray();
@@ -505,18 +657,29 @@ public class MainActivity extends Activity
 	{
 		isEquationMode = value;
 
-		// disable operator buttons
+		btn_plus = (Button) findViewById( R.id.plus_btn );
+		btn_mins = (Button) findViewById( R.id.minus_btn );
+		btn_mult = (Button) findViewById( R.id.mult_btn );
+		btn_divide = (Button) findViewById( R.id.divide_btn );
+		btn_leftBraket = (Button) findViewById( R.id.leftBracket_btn );
+		btn_rightBraket = (Button) findViewById( R.id.rightBracket_btn );
+
+		btn_plus.setEnabled( !isEquationMode );
+		btn_mins.setEnabled( !isEquationMode );
+		btn_mult.setEnabled( !isEquationMode );
+		btn_divide.setEnabled( !isEquationMode );
+		btn_leftBraket.setEnabled( !isEquationMode );
+		btn_rightBraket.setEnabled( !isEquationMode );
 
 	}
 
 
-	// reconstruct the inputs ArrayList from the cal_et text, used by the up and
-	// saved equations
+	// reconstruct the inputs ArrayList from the et_cal text, used by the up and saved equations
 	private void populateInputsArray()
 	{
 		inputs.clear();
 
-		String[] currentCal = cal_et.getText().toString().split( " " );
+		String[] currentCal = et_cal.getText().toString().split( " " );
 
 		for(int i = 0; i < currentCal.length; i++)
 		{
@@ -525,26 +688,36 @@ public class MainActivity extends Activity
 	}
 
 
-	@Override
-	protected void onSaveInstanceState( Bundle outState )
-	{
-		outState.putStringArrayList( STATE_INPUTS, inputs );
-		outState.putStringArrayList( STATE_HISTORY, history );
-
-		super.onSaveInstanceState( outState );
-	}
-
-
 	// get the equation that was last calculated
 	public void onUpClick( View v )
 	{
-		cal_et.setText( history.get( history.size() - 1 ) );
+		et_cal.setText( history.get( history.size() - 1 ) );
 
 		history.remove( history.size() - 1 );
 
 		populateInputsArray();
 
-		up_btn.setEnabled( ( history.size() > 0 ) );
+		btn_up.setEnabled( ( history.size() > 0 ) );
 	}
 
+
+	private void toggleEquationModeLayout( Boolean isEquationEntryMode )
+	{
+
+		btn_question = (Button) findViewById( R.id.question_btn );
+		if( isEquationEntryMode )
+		{
+			btn_question.setVisibility( View.VISIBLE );
+			btn_question.setEnabled( true );
+			btn_equals.setText( "Save" );
+
+			et_cal.setText( "" );
+		}
+		else
+		{
+			btn_question.setVisibility( View.INVISIBLE );
+			btn_question.setEnabled( false );
+			btn_equals.setText( "=" );
+		}
+	}
 }
