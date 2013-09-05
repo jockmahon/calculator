@@ -1,15 +1,16 @@
 package com.jock.calculator;
 
 import java.util.ArrayList;
+import java.util.Random;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements OnSharedPreferenceChangeListener
+public class MainActivity extends FragmentActivity implements OnSharedPreferenceChangeListener, SavedEquationsDialog.EquationInterface
 {
 	private static final String APP_TAG = "MY_CAL";
 	private static final String STATE_INPUTS = "inputs";
@@ -163,7 +164,8 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 				// extract the bracket contents including the brackets
 				ArrayList<String> bracketContent = new ArrayList<String>( inputStrings.subList( openBracketPos, closeBracketPos ) );
 
-				// remove the bracket content which will be replaced with its result
+				// remove the bracket content which will be replaced with its
+				// result
 				inputs = remove( inputs, openBracketPos, closeBracketPos );
 
 				// remove the (
@@ -184,7 +186,8 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 			}
 			else
 			{
-				// if there is no (, above, and no ) the exit the while else add a ( to complete the set
+				// if there is no (, above, and no ) the exit the while else add
+				// a ( to complete the set
 				if( inputStrings.lastIndexOf( ")" ) == -1 )
 				{
 					cont = false;
@@ -285,13 +288,17 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	public void onEqualsClick( View v )
 	{
 		String equationText = et_cal.getText().toString();
-		
+
 		if( btn_equals.getText().equals( "Save" ) )
 		{
 			SharedPreferences sp = this.getPreferences( Context.MODE_PRIVATE );
 			SharedPreferences.Editor editor = sp.edit();
 
-			editor.putString( "MOOSE_KEY", equationText );
+			Random rand = new Random();
+
+			int randomNum = rand.nextInt( 1000 );
+
+			editor.putString( "EQUATION_KEY_" + String.valueOf( randomNum ), equationText );
 			editor.commit();
 
 			Toast toast = Toast.makeText( this, getString( R.string.toast_equation_saved ), Toast.LENGTH_SHORT );
@@ -303,10 +310,10 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 		}
 		else
 		{
-			
+
 			if( equationText.contains( "?" ) )
 			{
-				Toast toast = Toast.makeText( this, getString( R.string.toast_error_msg), Toast.LENGTH_SHORT );
+				Toast toast = Toast.makeText( this, getString( R.string.toast_error_msg ), Toast.LENGTH_SHORT );
 				toast.show();
 				return;
 			}
@@ -321,9 +328,11 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 
 				checkForOrphanOp();
 
-				inputs = bracketContents( inputs ); // calculate the contents of all ()
+				inputs = bracketContents( inputs ); // calculate the contents of
+													// all ()
 
-				inputs = operatorPrecedence( inputs ); // calculate all the * and /
+				inputs = operatorPrecedence( inputs ); // calculate all the *
+														// and /
 
 				while (cont)
 				{
@@ -388,7 +397,8 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	}
 
 
-	// used to remove tailing zero on the number ie float values are 4.0, if remainder is 0 then return only the 4
+	// used to remove tailing zero on the number ie float values are 4.0, if
+	// remainder is 0 then return only the 4
 	private String checkRemainder( String value )
 	{
 		if( value.equals( "" ) )
@@ -427,7 +437,8 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	}
 
 
-	// used to remove the last entry, if a operator or bracket just remove it , if a number then need to only remove last digit
+	// used to remove the last entry, if a operator or bracket just remove it ,
+	// if a number then need to only remove last digit
 	private void onBackClick()
 	{
 		int lastArrayPos = inputs.size() - 1;
@@ -560,8 +571,8 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 
 	public void onClearClick( View v )
 	{
-		//onBackClick();
-		 reset();
+		// onBackClick();
+		reset();
 	}
 
 
@@ -572,13 +583,6 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 		inputs.add( "" );
 
 		btn_up.setEnabled( ( history.size() > 0 ) );
-
-	}
-
-
-	private void logD( String logThis )
-	{
-		Log.d( APP_TAG, logThis );
 	}
 
 
@@ -605,25 +609,25 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 		switch (item.getItemId())
 		{
 
-			case R.id.menu_item_new_equation:
-				reset();
-				toggleEquationModeLayout( true );
-				return true;
+		case R.id.menu_item_new_equation:
+			reset();
+			toggleEquationModeLayout( true );
+			return true;
 
-			case R.id.menu_item_clear_history:
-				clearHistory();
-				return true;
+		case R.id.menu_item_clear_history:
+			clearHistory();
+			return true;
 
-			case R.id.menu_item_xxx:
-				loadSavedEquation();
-				return true;
+		case R.id.menu_item_saved_equations:
+			loadSavedEquation();
+			return true;
 
-			case R.id.menu_item_settings:
-				openSettings();
-				return true;
+		case R.id.menu_item_settings:
+			openSettings();
+			return true;
 
-			default:
-				return super.onMenuItemSelected( featureId, item );
+		default:
+			return super.onMenuItemSelected( featureId, item );
 		}
 
 	}
@@ -638,9 +642,12 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 
 	private void loadSavedEquation()
 	{
-		SharedPreferences sp = this.getPreferences( Context.MODE_PRIVATE );
+		// SharedPreferences sp = this.getPreferences( Context.MODE_PRIVATE );
 
-		setEquation( sp.getString( "MOOSE_KEY", "" ) );
+		// setEquation( sp.getString( "MOOSE_KEY", "" ) );
+
+		DialogFragment savedEquationsDialog = new SavedEquationsDialog();
+		savedEquationsDialog.show( getSupportFragmentManager(), "ssd" );
 	}
 
 
@@ -674,7 +681,8 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	}
 
 
-	// reconstruct the inputs ArrayList from the et_cal text, used by the up and saved equations
+	// reconstruct the inputs ArrayList from the et_cal text, used by the up and
+	// saved equations
 	private void populateInputsArray()
 	{
 		inputs.clear();
@@ -720,4 +728,18 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 			btn_equals.setText( "=" );
 		}
 	}
+
+
+	@Override
+	public void onDialogPositiveClick( DialogFragment dialog, String equation )
+	{
+		setEquation( equation );
+	}
+
+
+	@Override
+	public void onDialogNegativeClick( DialogFragment dialog )
+	{
+	}
+
 }

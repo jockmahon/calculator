@@ -34,5 +34,6 @@
     
     <string name="toast_equation_saved">Equation Saved!</string>
     <string name="toast_error_msg">Replace the ? by entering a number</string>
+    <string name="menu_saved_equations">Saved Equations</string>
 
 </resources>
