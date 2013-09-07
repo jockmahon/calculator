@@ -284,6 +284,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	}
 
 
+
 	// when the = is pressed
 	public void onEqualsClick( View v )
 	{
