@@ -1,13 +1,16 @@
 Outstanding
 
-1) come up with name
-2) Do better graphics for the buttons
-3) do app icon
+1) 
+2) 
+3) 
 4) style action bar
-5) 
+5) add error checking
+6) prepare play store content
+7) 
+8) 
 
- 
-1) MAYBE - Edit user equationss
+ 0e5eb9
+1) MAYBE - Edit user equations
 
 
 
@@ -19,3 +22,15 @@ Save user equations
 Fix error when in equation mode and you press equals without replacing the ? placeholder with a value
 Delete user equations
 Display user equations
+on back click removes space before op
+make up button a action bar element
+add long click on clr to remove all, default behaviour is remove last
+come up with name
+on clear click on result reverts back to float format
+Do better graphics for the buttons
+open save equation and then open equation and layout stays the same
+toast on delete equation
+save an equation without a ? and it throws an error
+open save and equation and then go to save and ops still disabled
+open or delete save equation with none throws error
+do app icon

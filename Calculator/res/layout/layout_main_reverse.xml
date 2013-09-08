@@ -8,7 +8,8 @@
     android:paddingLeft="0dp"
     android:paddingRight="0dp"
     android:paddingTop="0dp"
-    tools:context=".MainActivity" >
+    tools:context=".MainActivity"
+    tools:ignore="ButtonStyle" >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -34,21 +35,11 @@
             android:layout_height="match_parent"
             android:layout_weight="2"
             android:background="@drawable/operator_style"
-            android:onClick="onClearClick"
+            android:onClick="onBackClick"
             android:text="@string/clr"
             android:textColor="#EEEEEE"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/up_btn"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:background="@drawable/operator_style"
-            android:onClick="onUpClick"
-            android:text="@string/up"
-            android:textColor="@drawable/buton_text_color"
-            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -65,6 +56,7 @@
             android:onClick="onButtonClick"
             android:text="@string/seven"
             android:textColor="#EEEEEE"
+            
             android:textSize="@dimen/buttonFontSize"
             android:textStyle="bold" />
 

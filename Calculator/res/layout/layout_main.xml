@@ -8,9 +8,9 @@
     android:paddingLeft="0dp"
     android:paddingRight="0dp"
     android:paddingTop="16dp"
-    tools:context=".MainActivity" >
+    tools:context=".MainActivity"
+    tools:ignore="ButtonStyle" >
 
-    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -35,21 +35,9 @@
             android:layout_height="match_parent"
             android:layout_weight="2"
             android:background="@drawable/operator_style"
-            android:onClick="onClearClick"
+            android:onClick="onBackClick"
             android:text="@string/clr"
-            android:textColor="#EEEEEE"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/up_btn"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:background="@drawable/operator_style"
-            android:onClick="onUpClick"
-            android:text="@string/up"
-            android:textColor="@drawable/buton_text_color"
-            android:textStyle="bold" />
+            android:textColor="#EEEEEE" />
     </LinearLayout>
 
     <LinearLayout
@@ -66,8 +54,7 @@
             android:onClick="onButtonClick"
             android:text="@string/one"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/two_btn"
@@ -78,8 +65,7 @@
             android:onClick="onButtonClick"
             android:text="@string/two"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/three_btn"
@@ -90,8 +76,7 @@
             android:onClick="onButtonClick"
             android:text="@string/three"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/plus_btn"
@@ -102,8 +87,7 @@
             android:onClick="onButtonClick"
             android:text="@string/plus"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/mult_btn"
@@ -114,8 +98,7 @@
             android:onClick="onButtonClick"
             android:text="@string/mult"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
     </LinearLayout>
 
     <LinearLayout
@@ -132,8 +115,7 @@
             android:onClick="onButtonClick"
             android:text="@string/four"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/five_btn"
@@ -144,8 +126,7 @@
             android:onClick="onButtonClick"
             android:text="@string/five"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/six_btn"
@@ -156,8 +137,7 @@
             android:onClick="onButtonClick"
             android:text="@string/six"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/minus_btn"
@@ -168,8 +148,7 @@
             android:onClick="onButtonClick"
             android:text="@string/minus"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/divide_btn"
@@ -180,8 +159,7 @@
             android:onClick="onButtonClick"
             android:text="@string/divide"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
     </LinearLayout>
 
     <LinearLayout
@@ -198,8 +176,7 @@
             android:onClick="onButtonClick"
             android:text="@string/seven"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/eight_btn"
@@ -210,8 +187,7 @@
             android:onClick="onButtonClick"
             android:text="@string/eight"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/nine_btn"
@@ -222,8 +198,7 @@
             android:onClick="onButtonClick"
             android:text="@string/nine"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/leftBracket_btn"
@@ -234,8 +209,7 @@
             android:onClick="onButtonClick"
             android:text="@string/left_bracket"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/rightBracket_btn"
@@ -246,8 +220,7 @@
             android:onClick="onButtonClick"
             android:text="@string/right_bracket"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
     </LinearLayout>
 
     <LinearLayout
@@ -264,8 +237,7 @@
             android:onClick="onButtonClick"
             android:text="@string/period"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/zero_btn"
@@ -276,8 +248,7 @@
             android:onClick="onButtonClick"
             android:text="@string/zero"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
 
         <Button
             android:id="@+id/question_btn"
@@ -289,7 +260,6 @@
             android:text="@string/question"
             android:textColor="#EEEEEE"
             android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold"
             android:visibility="invisible" />
 
         <Button
@@ -301,8 +271,7 @@
             android:onClick="onEqualsClick"
             android:text="@string/equals"
             android:textColor="#EEEEEE"
-            android:textSize="@dimen/buttonFontSize"
-            android:textStyle="bold" />
+            android:textSize="@dimen/buttonFontSize" />
     </LinearLayout>
 
 </LinearLayout>

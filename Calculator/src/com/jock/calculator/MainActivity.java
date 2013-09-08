@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -28,8 +29,8 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	ArrayList<String> history = new ArrayList<String>();
 
 	private EditText et_cal;
+	private Button btn_clr;
 	private Button btn_equals;
-	private Button btn_up;
 	private Button btn_plus;
 	private Button btn_mins;
 	private Button btn_mult;
@@ -65,10 +66,35 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		{
 			inputs.add( "" );
 		}
-		btn_up.setEnabled( ( history.size() > 0 ) );
+
+		buttonSetUp();
 
 		setIsEquationMode( false );
 		replaceIndex = -1;
+	}
+
+
+	private void buttonSetUp()
+	{
+		btn_plus = (Button) findViewById( R.id.plus_btn );
+		btn_mins = (Button) findViewById( R.id.minus_btn );
+		btn_mult = (Button) findViewById( R.id.mult_btn );
+		btn_divide = (Button) findViewById( R.id.divide_btn );
+		btn_leftBraket = (Button) findViewById( R.id.leftBracket_btn );
+		btn_rightBraket = (Button) findViewById( R.id.rightBracket_btn );
+		btn_clr = (Button) findViewById( R.id.clr_btn );
+		btn_question = (Button) findViewById( R.id.question_btn );
+
+		btn_clr.setOnLongClickListener( new OnLongClickListener()
+		{
+			@Override
+			public boolean onLongClick( View v )
+			{
+				reset();
+				return false;
+			}
+		} );
+
 	}
 
 
@@ -117,12 +143,11 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 			setContentView( R.layout.layout_main );
 		}
 
-		btn_up = (Button) findViewById( R.id.up_btn );
 		btn_equals = (Button) findViewById( R.id.equals_btn );
 		et_cal = (EditText) findViewById( R.id.editText );
 
 		setCalText();
-		btn_up.setEnabled( ( history.size() > 0 ) );
+
 	}
 
 
@@ -284,7 +309,6 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	}
 
 
-
 	// when the = is pressed
 	public void onEqualsClick( View v )
 	{
@@ -324,16 +348,12 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 				Boolean cont = true;
 
 				// add the equation to the history
-				history.add( et_cal.getText().toString() );
-				btn_up.setEnabled( ( history.size() > 0 ) );
+				addHistory( et_cal.getText().toString() );
 
 				checkForOrphanOp();
 
-				inputs = bracketContents( inputs ); // calculate the contents of
-													// all ()
-
-				inputs = operatorPrecedence( inputs ); // calculate all the *
-														// and /
+				inputs = bracketContents( inputs ); // calculate the contents of all ()
+				inputs = operatorPrecedence( inputs ); // calculate all the * and /
 
 				while (cont)
 				{
@@ -382,18 +402,19 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	{
 		if( isOperator( inputs.get( 0 ) ) )
 		{
-			inputs.add( 0, "0" );
+			inputs.remove( 0 );
 		}
 		else if( isOperator( inputs.get( inputs.size() - 1 ) ) )
 		{
-			if( inputs.get( inputs.size() - 1 ).equals( "/" ) )
-			{
-				inputs.add( inputs.size(), "1" );
-			}
-			else
-			{
-				inputs.add( inputs.size(), "0" );
-			}
+			inputs.remove( inputs.size() - 1 );
+			//if( inputs.get( inputs.size() - 1 ).equals( "/" ) )
+			//{
+			//	inputs.add( inputs.size(), "1" );
+			//}
+			//else
+			//{
+			//	inputs.add( inputs.size(), "0" );
+			//}
 		}
 	}
 
@@ -440,29 +461,32 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 	// used to remove the last entry, if a operator or bracket just remove it ,
 	// if a number then need to only remove last digit
-	private void onBackClick()
+	public void onBackClick( View v )
 	{
 		int lastArrayPos = inputs.size() - 1;
 
 		if( lastArrayPos >= 0 )
 		{
-			String previousInput = inputs.get( lastArrayPos );
+			String previousInput = checkRemainder( inputs.get( lastArrayPos ) );
 
-			if( isOperator( previousInput ) || isBracket( previousInput ) )
+			if( previousInput.equals( "" ) )
+			{
+				inputs.remove( lastArrayPos );
+			}
+			else if( isOperator( previousInput ) || isBracket( previousInput ) )
 			{
 				inputs.remove( lastArrayPos );
 			}
 			else
 			{
+				previousInput = previousInput.substring( 0, previousInput.length() - 1 );
+				inputs.set( lastArrayPos, previousInput );
+
 				if( previousInput.equals( "" ) )
 				{
 					inputs.remove( lastArrayPos );
 				}
-				else
-				{
-					previousInput = previousInput.substring( 0, previousInput.length() - 1 );
-					inputs.set( lastArrayPos, previousInput );
-				}
+
 			}
 		}
 
@@ -496,7 +520,16 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 				if( replaceIndex == -1 )
 				{
 					replaceIndex = inputs.indexOf( "?" );
-					inputs.set( replaceIndex, String.valueOf( but.getText() ) );
+
+					// if the index is still ? then the equation didnt initaly have a ? so update the last element
+					if( replaceIndex == -1 )
+					{
+						inputs.set( lastArrayPos, previousInput + String.valueOf( but.getText() ) );
+					}
+					else
+					{
+						inputs.set( replaceIndex, String.valueOf( but.getText() ) );
+					}
 				}
 				else
 				{
@@ -570,20 +603,11 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	}
 
 
-	public void onClearClick( View v )
-	{
-		// onBackClick();
-		reset();
-	}
-
-
 	private void reset()
 	{
 		et_cal.setText( "" );
 		inputs.clear();
 		inputs.add( "" );
-
-		btn_up.setEnabled( ( history.size() > 0 ) );
 	}
 
 
@@ -596,10 +620,28 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	}
 
 
+	@Override
+	public boolean onPrepareOptionsMenu( Menu menu )
+	{
+		menu.getItem( 0 ).setEnabled( ( history.size() > 0 ) );
+
+		return super.onPrepareOptionsMenu( menu );
+	}
+
+
 	private void clearHistory()
 	{
 		history.clear();
+		invalidateOptionsMenu();
 		reset();
+	}
+
+
+	private void setUpNewEquation()
+	{
+		reset();
+		toggleEquationModeLayout( true );
+		setIsEquationMode( false );
 	}
 
 
@@ -610,25 +652,28 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		switch (item.getItemId())
 		{
 
-		case R.id.menu_item_new_equation:
-			reset();
-			toggleEquationModeLayout( true );
-			return true;
+			case R.id.menu_item_clear_history:
+				clearHistory();
+				return true;
 
-		case R.id.menu_item_clear_history:
-			clearHistory();
-			return true;
+			case R.id.menu_item_new_equation:
+				setUpNewEquation();
+				return true;
 
-		case R.id.menu_item_saved_equations:
-			loadSavedEquation();
-			return true;
+			case R.id.menu_item_saved_equations:
+				loadSavedEquation();
+				return true;
 
-		case R.id.menu_item_settings:
-			openSettings();
-			return true;
+			case R.id.menu_item_settings:
+				openSettings();
+				return true;
 
-		default:
-			return super.onMenuItemSelected( featureId, item );
+			case R.id.menu_item_undo:
+				onUpClick();
+				return true;
+
+			default:
+				return super.onMenuItemSelected( featureId, item );
 		}
 
 	}
@@ -643,12 +688,10 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 	private void loadSavedEquation()
 	{
-		// SharedPreferences sp = this.getPreferences( Context.MODE_PRIVATE );
-
-		// setEquation( sp.getString( "MOOSE_KEY", "" ) );
+		toggleEquationModeLayout( false );
 
 		DialogFragment savedEquationsDialog = new SavedEquationsDialog();
-		savedEquationsDialog.show( getSupportFragmentManager(), "ssd" );
+		savedEquationsDialog.show( getSupportFragmentManager(), "0" );
 	}
 
 
@@ -658,27 +701,6 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 		setIsEquationMode( true );
 		populateInputsArray();
-	}
-
-
-	private void setIsEquationMode( Boolean value )
-	{
-		isEquationMode = value;
-
-		btn_plus = (Button) findViewById( R.id.plus_btn );
-		btn_mins = (Button) findViewById( R.id.minus_btn );
-		btn_mult = (Button) findViewById( R.id.mult_btn );
-		btn_divide = (Button) findViewById( R.id.divide_btn );
-		btn_leftBraket = (Button) findViewById( R.id.leftBracket_btn );
-		btn_rightBraket = (Button) findViewById( R.id.rightBracket_btn );
-
-		btn_plus.setEnabled( !isEquationMode );
-		btn_mins.setEnabled( !isEquationMode );
-		btn_mult.setEnabled( !isEquationMode );
-		btn_divide.setEnabled( !isEquationMode );
-		btn_leftBraket.setEnabled( !isEquationMode );
-		btn_rightBraket.setEnabled( !isEquationMode );
-
 	}
 
 
@@ -698,22 +720,40 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 
 	// get the equation that was last calculated
-	public void onUpClick( View v )
+	public void onUpClick()
 	{
 		et_cal.setText( history.get( history.size() - 1 ) );
+		removeHistory();
+		populateInputsArray();
+	}
 
+
+	// add to history,only invalidate action bar history going from 0 to 1
+	private void addHistory( String newEquation )
+	{
+		history.add( newEquation );
+
+		if( history.size() == 1 )
+		{
+			invalidateOptionsMenu();
+		}
+	}
+
+
+	private void removeHistory()
+	{
 		history.remove( history.size() - 1 );
 
-		populateInputsArray();
-
-		btn_up.setEnabled( ( history.size() > 0 ) );
+		if( history.size() == 0 )
+		{
+			invalidateOptionsMenu();
+		}
 	}
 
 
 	private void toggleEquationModeLayout( Boolean isEquationEntryMode )
 	{
 
-		btn_question = (Button) findViewById( R.id.question_btn );
 		if( isEquationEntryMode )
 		{
 			btn_question.setVisibility( View.VISIBLE );
@@ -731,16 +771,40 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	}
 
 
+	private void setIsEquationMode( Boolean value )
+	{
+		isEquationMode = value;
+
+		btn_plus.setEnabled( !isEquationMode );
+		btn_mins.setEnabled( !isEquationMode );
+		btn_mult.setEnabled( !isEquationMode );
+		btn_divide.setEnabled( !isEquationMode );
+		btn_leftBraket.setEnabled( !isEquationMode );
+		btn_rightBraket.setEnabled( !isEquationMode );
+	}
+
+
 	@Override
 	public void onDialogPositiveClick( DialogFragment dialog, String equation )
 	{
-		setEquation( equation );
+		if( equation.equals( SavedEquationsDialog.NO_SAVED_EQUATIONS ) )
+		{
+			setUpNewEquation();
+		}
+		else
+		{
+			setEquation( equation );
+		}
 	}
 
 
 	@Override
-	public void onDialogNegativeClick( DialogFragment dialog )
+	public void onDialogNegativeClick( DialogFragment dialog, String equation )
 	{
+		if( !equation.equals( SavedEquationsDialog.NO_SAVED_EQUATIONS ) )
+		{
+			Toast toast = Toast.makeText( this, String.format(getString( R.string.toast_equation_deleted ), equation), Toast.LENGTH_SHORT );
+			toast.show();
+		}
 	}
-
 }

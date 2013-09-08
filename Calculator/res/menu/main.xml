@@ -1,6 +1,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
+        android:id="@+id/menu_item_undo"
+        android:icon="@drawable/content_undo"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/menu_undo"/>
+
+    <item
         android:id="@+id/menu_item_clear_history"
         android:orderInCategory="100"
         android:showAsAction="never"

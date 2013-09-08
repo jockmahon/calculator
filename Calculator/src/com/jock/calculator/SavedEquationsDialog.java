@@ -16,16 +16,21 @@ import android.widget.ListView;
 
 public class SavedEquationsDialog extends DialogFragment implements DialogInterface.OnClickListener
 {
+	public static final String NO_SAVED_EQUATIONS = "-1";
 
-	List<String> e;
-	List<String> k;
-	
+	List<String> keyList;
+	List<String> valueList;
+
+	Boolean isSavedEquations;
+
 	EquationInterface equationInter;
-	
+
 	public interface EquationInterface
 	{
 		public void onDialogPositiveClick( DialogFragment dialog, String equation );
-		public void onDialogNegativeClick( DialogFragment dialog );
+
+
+		public void onDialogNegativeClick( DialogFragment dialog, String equation );
 
 	}
 
@@ -33,29 +38,39 @@ public class SavedEquationsDialog extends DialogFragment implements DialogInterf
 	@Override
 	public Dialog onCreateDialog( Bundle savedState )
 	{
-		AlertDialog.Builder builder = new AlertDialog.Builder( getActivity() );
-
-		builder.setTitle( getString( R.string.menu_saved_equations ) );
 
 		SharedPreferences sp = getActivity().getPreferences( getActivity().MODE_PRIVATE );
 
-		Map<String, ?> equ = (Map<String, ?>) sp.getAll();
+		Map<String, ?> savedEqu = (Map<String, ?>) sp.getAll();
 
-		e = new ArrayList<String>();
-		k = new ArrayList<String>();
-		for(String key : equ.keySet())
+		keyList = new ArrayList<String>();
+		valueList = new ArrayList<String>();
+		for(String key : savedEqu.keySet())
 		{
-			e.add( (String) equ.get( key ) );
-			k.add( key );
+			valueList.add( (String) savedEqu.get( key ) );
+			keyList.add( key );
 		}
 
-		String[] q = e.toArray( new String[e.size()] );
+		String[] valueArrray = valueList.toArray( new String[valueList.size()] );
 
-		builder.setSingleChoiceItems( q, 0, this );
+		AlertDialog.Builder builder = new AlertDialog.Builder( getActivity() );
+		builder.setTitle( getString( R.string.menu_saved_equations ) );
 
-		builder.setPositiveButton( "Open", this );
-		builder.setNegativeButton( "Delete", this );
+		if( valueArrray.length > 0 )
+		{
+			isSavedEquations = true;
+			builder.setSingleChoiceItems( valueArrray, 0, this );
 
+			builder.setPositiveButton( "Open", this );
+			builder.setNegativeButton( "Delete", this );
+		}
+		else
+		{
+			isSavedEquations = false;
+			builder.setMessage( getString( R.string.msg_no_saved_equ ) );
+			builder.setPositiveButton( "Go on then", this );
+			builder.setNegativeButton( "Not now", this );
+		}
 		return builder.create();
 	}
 
@@ -77,26 +92,35 @@ public class SavedEquationsDialog extends DialogFragment implements DialogInterf
 
 	public void onClick( DialogInterface dialog, int id )
 	{
-		Log.d( "MOOSE", String.valueOf( id ) );
+		if( isSavedEquations )
+		{
+			ListView lw = ( (AlertDialog) dialog ).getListView();
+			String rtn = (String) lw.getAdapter().getItem( lw.getCheckedItemPosition() );
+			if( id == -1 )
+			{
+				equationInter.onDialogPositiveClick( SavedEquationsDialog.this, rtn );
+			}
+			else if( id == -2 )
+			{
+				SharedPreferences sp = getActivity().getPreferences( getActivity().MODE_PRIVATE );
+				SharedPreferences.Editor editor = sp.edit();
 
-		ListView lw = ((AlertDialog)dialog).getListView();
-		String rtn = (String) lw.getAdapter().getItem(lw.getCheckedItemPosition());
-		
-		if( id == -1 )
-		{
-			
-			equationInter.onDialogPositiveClick( SavedEquationsDialog.this, rtn );	
+				editor.remove( keyList.get( lw.getCheckedItemPosition() ) );
+				editor.commit();
+
+				equationInter.onDialogNegativeClick( SavedEquationsDialog.this, rtn );
+			}
 		}
-		else if( id == -2)
+		else
 		{
-			SharedPreferences sp = getActivity().getPreferences( getActivity().MODE_PRIVATE );
-			SharedPreferences.Editor editor = sp.edit();
-			
-			editor.remove( k.get(lw.getCheckedItemPosition()  ) );
-			editor.commit();
-			
+			if( id == -1 )
+			{
+				equationInter.onDialogPositiveClick( SavedEquationsDialog.this, NO_SAVED_EQUATIONS );
+			}
+			else if( id == -2 )
+			{
+				equationInter.onDialogNegativeClick( SavedEquationsDialog.this ,NO_SAVED_EQUATIONS);
+			}
 		}
-			
 	}
-
 }
