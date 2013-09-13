@@ -1,7 +1,7 @@
 Outstanding
 
-1) 
-2) 
+1) bracket with no op before creates infinite loop
+2) do video for play store
 3) 
 4) style action bar
 5) add error checking

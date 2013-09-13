@@ -603,7 +603,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	}
 
 
-	private void reset()
+	public void reset()
 	{
 		et_cal.setText( "" );
 		inputs.clear();
