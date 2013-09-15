@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -145,6 +146,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 		btn_equals = (Button) findViewById( R.id.equals_btn );
 		et_cal = (EditText) findViewById( R.id.editText );
+		btn_question = (Button) findViewById( R.id.question_btn );
 
 		setCalText();
 
@@ -163,13 +165,15 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 
 	// calculate the contents of any brackets
-	private ArrayList<String> bracketContents( ArrayList<String> inputStrings )
+	private ArrayList<String> bracketContents( ArrayList<String> inputStrings ) throws ArrayIndexOutOfBoundsException
 	{
 		boolean cont = true;
 		int openBracketPos = -1;
 
 		while (cont)
 		{
+
+			Log.d( APP_TAG, "bracket" );
 			int closeBracketPos = inputStrings.size();
 
 			// get the last open bracket and work forward to get its matching
@@ -196,18 +200,36 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 				// remove the (
 				bracketContent.remove( 0 );
 
-				// if the last element was ) then remove it
-				if( bracketContent.get( bracketContent.size() - 1 ).equals( ")" ) )
+				if( bracketContent.size() > 0 )
 				{
-					bracketContent.remove( bracketContent.size() - 1 );
+					// if the last element was ) then remove it
+					if( bracketContent.get( bracketContent.size() - 1 ).equals( ")" ) )
+					{
+						bracketContent.remove( bracketContent.size() - 1 );
+					}
+
+					if( bracketContent.size() > 0 )
+					{
+						// calculate the bracket equation
+						bracketContent = operatorPrecedence( bracketContent );
+						bracketContent = calculate( bracketContent );
+
+						// if there is o oparator before a bracket default to *
+						if( ( openBracketPos > 0 ) && ( isOperator( inputs.get( openBracketPos - 1 ) ) ) )
+						{
+							// put the result back in the main inputs ArrayList
+							inputs.add( openBracketPos, bracketContent.get( 0 ) );
+						}
+						else
+						{
+							inputs.add( openBracketPos, bracketContent.get( 0 ) );
+							if( openBracketPos > 0 )
+							{
+								inputs.add( openBracketPos, "*" );
+							}
+						}
+					}
 				}
-
-				// calculate the bracket equation
-				bracketContent = operatorPrecedence( bracketContent );
-				bracketContent = calculate( bracketContent );
-
-				// put the result back in the main inputs ArrayList
-				inputs.add( openBracketPos, bracketContent.get( 0 ) );
 			}
 			else
 			{
@@ -222,6 +244,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 					inputs.add( 0, "(" );
 				}
 			}
+
 		}
 
 		return inputs;
@@ -231,8 +254,10 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	private ArrayList<String> calculate( ArrayList<String> equation )
 	{
 		Boolean cont = true;
+
 		while (cont)
 		{
+			Log.d( APP_TAG, "calculate" );
 			// if only one value the exit
 			if( equation.size() == 1 )
 			{
@@ -278,6 +303,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		Boolean cont = true;
 		while (cont)
 		{
+			Log.d( APP_TAG, "operatorPrecedence" );
 			for(int i = 0; i < inputStrings.size() - 1; i++)
 			{
 				if( ( inputStrings.get( i ).equals( "*" ) ) || ( inputStrings.get( i ).equals( "/" ) ) )
@@ -357,9 +383,22 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 				while (cont)
 				{
-					if( inputs.size() == 1 )
+					Log.d( APP_TAG, "onEquals" );
+					if( inputs.size() <= 1 )
 					{
 						cont = false;
+					}
+					else if( inputs.size() == 2 )
+					{
+						if( isOperator( inputs.get( 0 ) ) )
+						{
+							inputs.remove( 0 );
+						}
+						else
+						{
+							inputs.remove( 1 );
+						}
+
 					}
 					else
 					{
@@ -387,7 +426,16 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 					}
 				}
 
-				et_cal.setText( checkRemainder( inputs.get( 0 ) ) );
+				// fix for issu where they only enter a single operator ie "+"
+				if( inputs.size() >= 1 )
+				{
+					et_cal.setText( checkRemainder( inputs.get( 0 ) ) );
+				}
+				else
+				{
+					et_cal.setText( "" );
+					inputs.add( "" );
+				}
 
 				replaceIndex = -1;
 				setIsEquationMode( false );
@@ -407,14 +455,14 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		else if( isOperator( inputs.get( inputs.size() - 1 ) ) )
 		{
 			inputs.remove( inputs.size() - 1 );
-			//if( inputs.get( inputs.size() - 1 ).equals( "/" ) )
-			//{
-			//	inputs.add( inputs.size(), "1" );
-			//}
-			//else
-			//{
-			//	inputs.add( inputs.size(), "0" );
-			//}
+			// if( inputs.get( inputs.size() - 1 ).equals( "/" ) )
+			// {
+			// inputs.add( inputs.size(), "1" );
+			// }
+			// else
+			// {
+			// inputs.add( inputs.size(), "0" );
+			// }
 		}
 	}
 
@@ -803,7 +851,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	{
 		if( !equation.equals( SavedEquationsDialog.NO_SAVED_EQUATIONS ) )
 		{
-			Toast toast = Toast.makeText( this, String.format(getString( R.string.toast_equation_deleted ), equation), Toast.LENGTH_SHORT );
+			Toast toast = Toast.makeText( this, String.format( getString( R.string.toast_equation_deleted ), equation ), Toast.LENGTH_SHORT );
 			toast.show();
 		}
 	}
