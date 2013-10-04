@@ -1,20 +1,23 @@
 Outstanding
 
-1) 
-2) do video for play store
+1) can press "." more than once and causes an error
+2) 
 3) 
 4) style action bar
 5) add error checking
-6) prepare play store content
+6) 
 7) 
 8) 
 
- 0e5eb9
+ 
 1) MAYBE - Edit user equations
 
 
 
 Done
+add animation for text change
+do video for play store
+prepare play store content
 Do numbers reverse layout
 Allow user to set preference for layout of numbers
 Add a remove last entry button

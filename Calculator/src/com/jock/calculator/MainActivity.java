@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
@@ -16,8 +17,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
+import android.view.ViewGroup.LayoutParams;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextSwitcher;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements OnSharedPreferenceChangeListener, SavedEquationsDialog.EquationInterface
@@ -29,7 +35,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	ArrayList<String> inputs = new ArrayList<String>();
 	ArrayList<String> history = new ArrayList<String>();
 
-	private EditText et_cal;
+	private TextSwitcher et_cal;
 	private Button btn_clr;
 	private Button btn_equals;
 	private Button btn_plus;
@@ -56,7 +62,8 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		Boolean isReverse = prefs.getBoolean( PreferencesActivity.KEY_PREF_REVERSE_NUMBERS, false );
 
 		setLayout( isReverse );
-
+		buttonSetUp();
+		
 		// if there is a saved state restore it
 		if( savedInstanceState != null )
 		{
@@ -67,9 +74,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		{
 			inputs.add( "" );
 		}
-
-		buttonSetUp();
-
+		
 		setIsEquationMode( false );
 		replaceIndex = -1;
 	}
@@ -145,9 +150,32 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		}
 
 		btn_equals = (Button) findViewById( R.id.equals_btn );
-		et_cal = (EditText) findViewById( R.id.editText );
+		et_cal = (TextSwitcher) findViewById( R.id.editText );
 		btn_question = (Button) findViewById( R.id.question_btn );
+		
+		TextView tv_first = new TextView( this );
+		tv_first.setTextSize( 40 );
+		
+		tv_first.setTextAlignment( View.TEXT_ALIGNMENT_VIEW_END );
+		tv_first.setTextColor( Color.WHITE );
+		tv_first.setLayoutParams( new LayoutParams( LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT ) );
+		tv_first.setText( "1" );
 
+		TextView tv_Second = new TextView( this );
+		tv_Second.setTextColor( Color.WHITE );
+		tv_Second.setTextSize( 40 );
+		tv_Second.setLayoutParams( new LayoutParams( LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT ) );
+		tv_Second.setText( "2" );
+
+		Animation in = AnimationUtils.loadAnimation( this, android.R.anim.slide_in_left );
+		Animation out = AnimationUtils.loadAnimation( this, android.R.anim.slide_out_right );
+
+		et_cal.setInAnimation( in );
+		et_cal.setOutAnimation( out );
+
+		et_cal.addView( tv_first );
+		et_cal.addView( tv_Second );
+		
 		setCalText();
 
 	}
@@ -338,7 +366,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	// when the = is pressed
 	public void onEqualsClick( View v )
 	{
-		String equationText = et_cal.getText().toString();
+		String equationText = ( (TextView) et_cal.getCurrentView() ).getText().toString();
 
 		if( btn_equals.getText().equals( "Save" ) )
 		{
@@ -374,12 +402,14 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 				Boolean cont = true;
 
 				// add the equation to the history
-				addHistory( et_cal.getText().toString() );
+				addHistory( ( (TextView) et_cal.getCurrentView() ).getText().toString() );
 
 				checkForOrphanOp();
 
-				inputs = bracketContents( inputs ); // calculate the contents of all ()
-				inputs = operatorPrecedence( inputs ); // calculate all the * and /
+				inputs = bracketContents( inputs ); // calculate the contents of
+													// all ()
+				inputs = operatorPrecedence( inputs ); // calculate all the *
+														// and /
 
 				while (cont)
 				{
@@ -569,7 +599,8 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 				{
 					replaceIndex = inputs.indexOf( "?" );
 
-					// if the index is still ? then the equation didnt initaly have a ? so update the last element
+					// if the index is still ? then the equation didnt initaly
+					// have a ? so update the last element
 					if( replaceIndex == -1 )
 					{
 						inputs.set( lastArrayPos, previousInput + String.valueOf( but.getText() ) );
@@ -631,10 +662,12 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	// set the text of the equation
 	private void setCalText()
 	{
-		et_cal.setText( "" );
+		( (TextView) et_cal.getCurrentView() ).setText( "" );
 		for(int i = 0; i < inputs.size(); i++)
 		{
-			et_cal.append( checkRemainder( inputs.get( i ) ) + " " );
+			String tmp = ( (TextView) et_cal.getCurrentView() ).getText().toString();
+			( (TextView) et_cal.getCurrentView() ).setText( tmp + checkRemainder( inputs.get( i ) ) + " " );
+			// et_cal.append( checkRemainder( inputs.get( i ) ) + " " );
 		}
 	}
 
@@ -700,28 +733,28 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		switch (item.getItemId())
 		{
 
-			case R.id.menu_item_clear_history:
-				clearHistory();
-				return true;
+		case R.id.menu_item_clear_history:
+			clearHistory();
+			return true;
 
-			case R.id.menu_item_new_equation:
-				setUpNewEquation();
-				return true;
+		case R.id.menu_item_new_equation:
+			setUpNewEquation();
+			return true;
 
-			case R.id.menu_item_saved_equations:
-				loadSavedEquation();
-				return true;
+		case R.id.menu_item_saved_equations:
+			loadSavedEquation();
+			return true;
 
-			case R.id.menu_item_settings:
-				openSettings();
-				return true;
+		case R.id.menu_item_settings:
+			openSettings();
+			return true;
 
-			case R.id.menu_item_undo:
-				onUpClick();
-				return true;
+		case R.id.menu_item_undo:
+			onUpClick();
+			return true;
 
-			default:
-				return super.onMenuItemSelected( featureId, item );
+		default:
+			return super.onMenuItemSelected( featureId, item );
 		}
 
 	}
@@ -758,7 +791,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	{
 		inputs.clear();
 
-		String[] currentCal = et_cal.getText().toString().split( " " );
+		String[] currentCal = ( (TextView) et_cal.getCurrentView() ).getText().toString().split( " " );
 
 		for(int i = 0; i < currentCal.length; i++)
 		{
