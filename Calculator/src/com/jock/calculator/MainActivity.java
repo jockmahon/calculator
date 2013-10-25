@@ -21,7 +21,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,7 +34,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	ArrayList<String> inputs = new ArrayList<String>();
 	ArrayList<String> history = new ArrayList<String>();
 
-	private TextSwitcher et_cal;
+	private TextSwitcher ts_cal;
 	private Button btn_clr;
 	private Button btn_equals;
 	private Button btn_plus;
@@ -49,6 +48,11 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	private int replaceIndex;
 
 	private SharedPreferences prefs;
+	
+	Animation inTop = null;
+	Animation inBottom = null;
+	Animation outTop = null;
+	Animation outBottom = null;
 
 
 	@Override
@@ -150,7 +154,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		}
 
 		btn_equals = (Button) findViewById( R.id.equals_btn );
-		et_cal = (TextSwitcher) findViewById( R.id.editText );
+		ts_cal = (TextSwitcher) findViewById( R.id.editText );
 		btn_question = (Button) findViewById( R.id.question_btn );
 		
 		TextView tv_first = new TextView( this );
@@ -167,14 +171,17 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		tv_Second.setLayoutParams( new LayoutParams( LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT ) );
 		tv_Second.setText( "2" );
 
-		Animation in = AnimationUtils.loadAnimation( this, android.R.anim.slide_in_left );
-		Animation out = AnimationUtils.loadAnimation( this, android.R.anim.slide_out_right );
+		inTop = AnimationUtils.loadAnimation( this, R.anim.anim_slide_in_top );
+		outBottom = AnimationUtils.loadAnimation( this, R.anim.anim_slide_out_bottom );
 
-		et_cal.setInAnimation( in );
-		et_cal.setOutAnimation( out );
+		inBottom = AnimationUtils.loadAnimation( this, R.anim.anim_slide_in_bottom );
+		outTop = AnimationUtils.loadAnimation( this, R.anim.anim_slide_out_top );
 
-		et_cal.addView( tv_first );
-		et_cal.addView( tv_Second );
+		ts_cal.setInAnimation( inTop );
+		ts_cal.setOutAnimation( outBottom );
+
+		ts_cal.addView( tv_first );
+		ts_cal.addView( tv_Second );
 		
 		setCalText();
 
@@ -366,7 +373,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	// when the = is pressed
 	public void onEqualsClick( View v )
 	{
-		String equationText = ( (TextView) et_cal.getCurrentView() ).getText().toString();
+		String equationText = ( (TextView) ts_cal.getCurrentView() ).getText().toString();
 
 		if( btn_equals.getText().equals( "Save" ) )
 		{
@@ -402,7 +409,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 				Boolean cont = true;
 
 				// add the equation to the history
-				addHistory( ( (TextView) et_cal.getCurrentView() ).getText().toString() );
+				addHistory( ( (TextView) ts_cal.getCurrentView() ).getText().toString() );
 
 				checkForOrphanOp();
 
@@ -456,14 +463,14 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 					}
 				}
 
-				// fix for issu where they only enter a single operator ie "+"
+				// fix for issue where they only enter a single operator ie "+"
 				if( inputs.size() >= 1 )
 				{
-					et_cal.setText( checkRemainder( inputs.get( 0 ) ) );
+					ts_cal.setText( checkRemainder( inputs.get( 0 ) ) );
 				}
 				else
 				{
-					et_cal.setText( "" );
+					ts_cal.setText( "" );
 					inputs.add( "" );
 				}
 
@@ -586,7 +593,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 		String previousInput = inputs.get( lastArrayPos );
 
 		// if a number
-		if( ( input.equals( "." ) ) || ( input.equals( "0" ) ) || ( input.equals( "1" ) ) || ( input.equals( "2" ) ) || ( input.equals( "3" ) )
+		if( ( input.equals( "0" ) ) || ( input.equals( "1" ) ) || ( input.equals( "2" ) ) || ( input.equals( "3" ) )
 				|| ( input.equals( "4" ) ) || ( input.equals( "5" ) ) || ( input.equals( "6" ) ) || ( input.equals( "7" ) ) || ( input.equals( "8" ) )
 				|| ( input.equals( "9" ) ) )
 		{
@@ -639,6 +646,15 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 				inputs.add( String.valueOf( but.getText() ) );
 			}
 		}
+		else if( input.equals( "." ) )
+		{
+			//if input is period and the values does not already have one
+			if( !previousInput.contains( "." ) )
+			{
+				inputs.set( lastArrayPos, checkRemainder( previousInput ) + String.valueOf( but.getText() ) );
+			}
+			
+		}
 		else
 		// if a operator
 		{
@@ -662,12 +678,12 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	// set the text of the equation
 	private void setCalText()
 	{
-		( (TextView) et_cal.getCurrentView() ).setText( "" );
+		( (TextView) ts_cal.getCurrentView() ).setText( "" );
 		for(int i = 0; i < inputs.size(); i++)
 		{
-			String tmp = ( (TextView) et_cal.getCurrentView() ).getText().toString();
-			( (TextView) et_cal.getCurrentView() ).setText( tmp + checkRemainder( inputs.get( i ) ) + " " );
-			// et_cal.append( checkRemainder( inputs.get( i ) ) + " " );
+			String tmp = ( (TextView) ts_cal.getCurrentView() ).getText().toString();
+			( (TextView) ts_cal.getCurrentView() ).setText( tmp + checkRemainder( inputs.get( i ) ) + " " );
+			// ts_cal.append( checkRemainder( inputs.get( i ) ) + " " );
 		}
 	}
 
@@ -686,7 +702,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 	public void reset()
 	{
-		et_cal.setText( "" );
+		ts_cal.setText( "" );
 		inputs.clear();
 		inputs.add( "" );
 	}
@@ -778,20 +794,20 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 
 	private void setEquation( String equation )
 	{
-		et_cal.setText( equation );
+		ts_cal.setText( equation );
 
 		setIsEquationMode( true );
 		populateInputsArray();
 	}
 
 
-	// reconstruct the inputs ArrayList from the et_cal text, used by the up and
+	// reconstruct the inputs ArrayList from the ts_cal text, used by the up and
 	// saved equations
 	private void populateInputsArray()
 	{
 		inputs.clear();
 
-		String[] currentCal = ( (TextView) et_cal.getCurrentView() ).getText().toString().split( " " );
+		String[] currentCal = ( (TextView) ts_cal.getCurrentView() ).getText().toString().split( " " );
 
 		for(int i = 0; i < currentCal.length; i++)
 		{
@@ -803,9 +819,17 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 	// get the equation that was last calculated
 	public void onUpClick()
 	{
-		et_cal.setText( history.get( history.size() - 1 ) );
+		
+		ts_cal.setInAnimation( inBottom );
+		ts_cal.setOutAnimation( outTop );		
+		
+		ts_cal.setText( history.get( history.size() - 1 ) );
 		removeHistory();
 		populateInputsArray();
+		
+		ts_cal.setInAnimation( inTop );
+		ts_cal.setOutAnimation( outBottom );			
+		
 	}
 
 
@@ -841,7 +865,7 @@ public class MainActivity extends FragmentActivity implements OnSharedPreference
 			btn_question.setEnabled( true );
 			btn_equals.setText( "Save" );
 
-			et_cal.setText( "" );
+			ts_cal.setText( "" );
 		}
 		else
 		{
